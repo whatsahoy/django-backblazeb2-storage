@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, absolute_import
+
 from tempfile import TemporaryFile
 
 from io import BytesIO
@@ -12,7 +15,8 @@ class B2Storage(Storage):
         self.account_id = settings.BACKBLAZEB2_ACCOUNT_ID  # if account_id == None
         self.app_key = settings.BACKBLAZEB2_APP_KEY  # if app_key == None
         self.bucket_name = settings.BACKBLAZEB2_BUCKET_NAME  # if bucket_name == None
-        self.b2 = BackBlazeB2(app_key=self.app_key, account_id=self.account_id, bucket_name=self.bucket_name)
+        self.bucket_id = settings.BACKBLAZEB2_BUCKET_ID  # if bucket_id == None
+        self.b2 = BackBlazeB2(app_key=self.app_key, account_id=self.account_id, bucket_name=self.bucket_name, bucket_id=self.bucket_id)
 
     def save(self, name, content, max_length=None):
         """

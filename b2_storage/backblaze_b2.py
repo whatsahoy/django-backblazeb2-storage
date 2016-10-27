@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, absolute_import
+
 import base64
 from contextlib import closing
 
@@ -6,13 +9,13 @@ import hashlib
 
 
 class BackBlazeB2(object):
-    def __init__(self, app_key=None, account_id=None, bucket_name=None):
+    def __init__(self, app_key=None, account_id=None, bucket_name=None, bucket_id=None):
         self.bucket_id = None
         self.account_id = account_id
         self.app_key = app_key
         self.bucket_name = bucket_name
+        self.bucket_id = bucket_id
         self.authorize()
-        self.get_bucket_id_by_name()
 
     def authorize(self):
         headers = {'Authorization': 'Basic: %s' % (base64.b64encode(('%s:%s' % (self.account_id, self.app_key)).encode('utf-8'))).decode('utf-8')}
@@ -70,20 +73,3 @@ class BackBlazeB2(object):
     def download_file(self, name):
         headers = {'Authorization': self.authorization_token}
         return requests.get("%s/file/%s/%s" % (self.download_url, self.bucket_name, name), headers=headers).content
-
-    def get_bucket_id_by_name(self):
-        """
-        BackBlaze B2 should  make an endpoint to retrieve buckets by its name.
-        """
-        headers = {'Authorization': self.authorization_token}
-        params = {'accountId': self.account_id}
-        resp = requests.get(self._build_url("/b2api/v1/b2_list_buckets"), headers=headers, params=params).json()
-        if 'buckets' in resp:
-            buckets = resp['buckets']
-            for bucket in buckets:
-                if bucket['bucketName'] == self.bucket_name:
-                    self.bucket_id = bucket['bucketId']
-                    return True
-
-        else:
-            return False
