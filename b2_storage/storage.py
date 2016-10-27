@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from tempfile import TemporaryFile
 
@@ -8,14 +8,16 @@ from django.conf import settings
 from django.core.files.storage import Storage
 from django.core.files.base import File
 from .backblaze_b2 import BackBlazeB2
-
+import re
+import os
+from uuid import uuid4
 
 class B2Storage(Storage):
-    def __init__(self, account_id=None, app_key=None, bucket_name=None):
-        self.account_id = settings.BACKBLAZEB2_ACCOUNT_ID  # if account_id == None
-        self.app_key = settings.BACKBLAZEB2_APP_KEY  # if app_key == None
-        self.bucket_name = settings.BACKBLAZEB2_BUCKET_NAME  # if bucket_name == None
-        self.bucket_id = settings.BACKBLAZEB2_BUCKET_ID  # if bucket_id == None
+    def __init__(self, account_id=None, app_key=None, bucket_name=None, bucket_id=None):
+        self.account_id = settings.BACKBLAZEB2_ACCOUNT_ID if account_id == None else account_id
+        self.app_key = settings.BACKBLAZEB2_APP_KEY if app_key == None else app_key
+        self.bucket_name = settings.BACKBLAZEB2_BUCKET_NAME if bucket_name == None else bucket_name
+        self.bucket_id = settings.BACKBLAZEB2_BUCKET_ID if bucket_id == None else bucket_id
         self.b2 = BackBlazeB2(app_key=self.app_key, account_id=self.account_id, bucket_name=self.bucket_name, bucket_id=self.bucket_id)
 
     def save(self, name, content, max_length=None):
@@ -24,10 +26,21 @@ class B2Storage(Storage):
         If the file exists it will make another version of that file.
         """
 
+        name = re.sub("^./", "", name)
+
+        folder_path = os.path.dirname(name)
+        extension = os.path.splitext(name)[1]
+
+        if extension:
+            newname = "{}{}".format(uuid4(), extension)
+        else:
+            newname = uuid4()
+
+        name = os.path.join(folder_path, newname)
+
         resp = self.b2.upload_file(name, content)
         if 'fileName' in resp:
             return resp['fileName']
-
         else:
             # Raise exception
             pass
@@ -76,5 +89,6 @@ class B2Storage(Storage):
         # def size(self, name):
         #     pass
         #
-        # def url(self, name):
-        #     pass
+
+    def url(self, name):
+        return "{}/file/{}/{}".format(self.b2.download_url, self.b2.bucket_name, name)
