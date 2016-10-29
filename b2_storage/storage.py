@@ -34,7 +34,7 @@ class B2Storage(Storage):
         if extension:
             newname = "{}{}".format(uuid4(), extension)
         else:
-            newname = uuid4()
+            newname = "{}".format(uuid4())
 
         name = os.path.join(folder_path, newname)
 
@@ -73,22 +73,21 @@ class B2Storage(Storage):
         return File(output, name)
 
 
-        #
-        # def get_available_name(self, name, max_length=None):
-        #     pass
-        #
-        # def delete(self, name):
-        #     pass
-        #
-        # def exists(self, name):
-        #     pass
-        #
-        # def listdir(self, path):
-        #     pass
-        #
-        # def size(self, name):
-        #     pass
-        #
+    #
+    # def get_available_name(self, name, max_length=None):
+    #     pass
+    #
+    # def delete(self, name):
+    #     pass
+    #
+    # def exists(self, name):
+    #     pass
+    #
+    # def listdir(self, path):
+    #     pass
+
+    def size(self, name):
+        return 1
 
     def url(self, name):
         return "{}/file/{}/{}".format(self.b2.download_url, self.b2.bucket_name, name)
