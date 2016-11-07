@@ -34,6 +34,7 @@ class BackBlazeB2(object):
 
         headers = {'Authorization': 'Basic: %s' % (
         base64.b64encode(('%s:%s' % (self.account_id, self.app_key)).encode('utf-8'))).decode('utf-8')}
+
         response = requests.get('https://api.backblaze.com/b2api/v1/b2_authorize_account', headers=headers)
         if response.status_code == 200:
             resp = response.json()
@@ -73,11 +74,14 @@ class BackBlazeB2(object):
         }
 
         download_response = requests.post(url, headers=headers, data=content.read())
+        # Status is 503: Service unavailable. Try again
+        if download_response.status_code == 503:
+            attempts = 0
+            while attempts <= 3 and download_response.status_code == 503:
+                download_response = requests.post(url, headers=headers, data=content.read())
+                attempts += 1
         if download_response.status_code != 200:
-            # raise exception here.
-            pass
-        else:
-            pass
+            download_response.raise_for_status()
 
         return download_response.json()
 

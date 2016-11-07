@@ -5,4 +5,4 @@ from __future__ import absolute_import, unicode_literals
 Django BlackBlaze B2 Storage
 """
 
-__version__ = (0, 2)
+__version__ = (0, 3)
