@@ -29,7 +29,7 @@ class BackBlazeB2(object):
 
     def authorize(self):
         # Refresh token every 12h
-        if datetime.datetime.now() < (self.last_authorized + datetime.timedelta(hours=12)):
+        if self.last_authorized and datetime.datetime.now() < (self.last_authorized + datetime.timedelta(hours=12)):
             return True
 
         headers = {'Authorization': 'Basic: %s' % (
@@ -95,4 +95,4 @@ class BackBlazeB2(object):
         if self.bucket_private:
             headers = {'Authorization': self.authorization_token}
 
-        return requests.get("%s/file/%s/%s" % (self.download_url, self.bucket_name, name), headers=headers).contents
+        return requests.get("%s/file/%s/%s" % (self.download_url, self.bucket_name, name), headers=headers).content
