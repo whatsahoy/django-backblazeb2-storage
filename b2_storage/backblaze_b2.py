@@ -2,32 +2,47 @@
 from __future__ import unicode_literals, absolute_import
 
 import base64
-from contextlib import closing
-
-import requests
+import datetime
 import hashlib
+import requests
 
 
 class BackBlazeB2(object):
-    def __init__(self, app_key=None, account_id=None, bucket_name=None, bucket_id=None):
+    def __init__(self, app_key=None, account_id=None, bucket_name=None, bucket_id=None, bucket_private=True):
         self.bucket_id = None
         self.account_id = account_id
         self.app_key = app_key
         self.bucket_name = bucket_name
         self.bucket_id = bucket_id
+        self.bucket_private = bucket_private
+
+        self._authorization_token = None
+        self.last_authorized = None
+        self.download_url = None
+        self.base_url = None
         self.authorize()
 
+    @property
+    def authorization_token(self):
+        self.authorize()
+        return self._authorization_token
+
     def authorize(self):
-        headers = {'Authorization': 'Basic: %s' % (base64.b64encode(('%s:%s' % (self.account_id, self.app_key)).encode('utf-8'))).decode('utf-8')}
+        # Refresh token every 12h
+        if datetime.datetime.now() < (self.last_authorized + datetime.timedelta(hours=12)):
+            return True
+
+        headers = {'Authorization': 'Basic: %s' % (
+        base64.b64encode(('%s:%s' % (self.account_id, self.app_key)).encode('utf-8'))).decode('utf-8')}
         response = requests.get('https://api.backblaze.com/b2api/v1/b2_authorize_account', headers=headers)
         if response.status_code == 200:
             resp = response.json()
             self.base_url = resp['apiUrl']
             self.download_url = resp['downloadUrl']
-            self.authorization_token = resp['authorizationToken']
+            self._authorization_token = resp['authorizationToken']
+            self.last_authorized = datetime.datetime.now()
 
             return True
-
         else:
             return False
 
@@ -71,5 +86,9 @@ class BackBlazeB2(object):
         return requests.get("%s/file/%s/%s" % (self.download_url, self.bucket_name, name), headers=headers)
 
     def download_file(self, name):
-        headers = {'Authorization': self.authorization_token}
-        return requests.get("%s/file/%s/%s" % (self.download_url, self.bucket_name, name), headers=headers).content
+        headers = {}
+
+        if self.bucket_private:
+            headers = {'Authorization': self.authorization_token}
+
+        return requests.get("%s/file/%s/%s" % (self.download_url, self.bucket_name, name), headers=headers).contents
