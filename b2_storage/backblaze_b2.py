@@ -20,7 +20,6 @@ class BackBlazeB2(object):
         self.last_authorized = None
         self.download_url = None
         self.base_url = None
-        self.authorize()
 
     @property
     def authorization_token(self):
@@ -48,6 +47,8 @@ class BackBlazeB2(object):
             return False
 
     def get_upload_url(self):
+        self.authorize()
+
         url = self._build_url('/b2api/v1/b2_get_upload_url')
         headers = {'Authorization': self.authorization_token}
         params = {'bucketId': self.bucket_id}
@@ -57,6 +58,8 @@ class BackBlazeB2(object):
         return "%s%s" % (self.base_url, endpoint)
 
     def upload_file(self, name, content):
+        self.authorize()
+
         response = self.get_upload_url()
         if 'uploadUrl' not in response:
             return False
@@ -86,8 +89,15 @@ class BackBlazeB2(object):
         return download_response.json()
 
     def get_file_info(self, name):
+        self.authorize()
+
         headers = {'Authorization': self.authorization_token}
         return requests.get("%s/file/%s/%s" % (self.download_url, self.bucket_name, name), headers=headers)
+
+    def file_download_url(self, name):
+        self.authorize()
+
+        return "%s/file/%s/%s" % (self.download_url, self.bucket_name, name)
 
     def download_file(self, name):
         headers = {}
@@ -95,4 +105,4 @@ class BackBlazeB2(object):
         if self.bucket_private:
             headers = {'Authorization': self.authorization_token}
 
-        return requests.get("%s/file/%s/%s" % (self.download_url, self.bucket_name, name), headers=headers).content
+        return requests.get(self.file_download_url(name), headers=headers).content

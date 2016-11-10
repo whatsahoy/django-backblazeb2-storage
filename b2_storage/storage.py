@@ -97,4 +97,4 @@ class B2Storage(Storage):
         return 1
 
     def url(self, name):
-        return "{}/file/{}/{}".format(self.b2.download_url, self.b2.bucket_name, name)
+        return self.b2.file_download_url(name)
