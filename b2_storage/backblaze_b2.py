@@ -11,6 +11,9 @@ log = logging.getLogger(__name__)
 
 
 class BackBlazeB2(object):
+    class APIError(Exception):
+        pass
+
     def __init__(self, app_key=None, account_id=None, bucket_name=None, bucket_id=None, bucket_private=True):
         self.bucket_id = None
         self.account_id = account_id
@@ -68,6 +71,7 @@ class BackBlazeB2(object):
             return False
 
         url = response['uploadUrl']
+        content.seek(0)
         sha1_of_file_data = hashlib.sha1(content.read()).hexdigest()
         content.seek(0)
 
@@ -87,8 +91,7 @@ class BackBlazeB2(object):
                 download_response = requests.post(url, headers=headers, data=content.read())
                 attempts += 1
         if download_response.status_code != 200:
-            log.error('%d error while uploading file to B2 Cloud. Response: %s', download_response.status_code, download_response.content)
-            download_response.raise_for_status()
+            raise BackBlazeB2.APIError('{} error while uploading file to B2 Cloud. Response: {}'.format(download_response.status_code, download_response.content))
 
         return download_response.json()
 
