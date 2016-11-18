@@ -5,6 +5,9 @@ import base64
 import datetime
 import hashlib
 import requests
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class BackBlazeB2(object):
@@ -84,6 +87,7 @@ class BackBlazeB2(object):
                 download_response = requests.post(url, headers=headers, data=content.read())
                 attempts += 1
         if download_response.status_code != 200:
+            log.error('%d error while uploading file to B2 Cloud. Response: %s', download_response.status_code, download_response.content)
             download_response.raise_for_status()
 
         return download_response.json()
