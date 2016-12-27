@@ -40,17 +40,22 @@ class BackBlazeB2(object):
         headers = {'Authorization': 'Basic: %s' % (
         base64.b64encode(('%s:%s' % (self.account_id, self.app_key)).encode('utf-8'))).decode('utf-8')}
 
-        response = requests.get('https://api.backblaze.com/b2api/v1/b2_authorize_account', headers=headers, timeout=2)
-        if response.status_code == 200:
-            resp = response.json()
-            self.base_url = resp['apiUrl']
-            self.download_url = resp['downloadUrl']
-            self._authorization_token = resp['authorizationToken']
-            self.last_authorized = datetime.datetime.now()
+        try:
+            response = requests.get('https://api.backblaze.com/b2api/v1/b2_authorize_account', headers=headers, timeout=2)
+            if response.status_code == 200:
+                resp = response.json()
+                self.base_url = resp['apiUrl']
+                self.download_url = resp['downloadUrl']
+                self._authorization_token = resp['authorizationToken']
+                self.last_authorized = datetime.datetime.now()
 
-            return True
-        else:
+                return True
+            else:
+                return False
+        except requests.exceptions.Timeout:
+            log.error('Connection to backblaze timeouted during authorization')
             return False
+
 
     def get_upload_url(self):
         self.authorize()
