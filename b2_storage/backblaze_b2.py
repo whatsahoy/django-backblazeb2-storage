@@ -40,7 +40,7 @@ class BackBlazeB2(object):
         headers = {'Authorization': 'Basic: %s' % (
         base64.b64encode(('%s:%s' % (self.account_id, self.app_key)).encode('utf-8'))).decode('utf-8')}
 
-        response = requests.get('https://api.backblaze.com/b2api/v1/b2_authorize_account', headers=headers)
+        response = requests.get('https://api.backblaze.com/b2api/v1/b2_authorize_account', headers=headers, timeout=2)
         if response.status_code == 200:
             resp = response.json()
             self.base_url = resp['apiUrl']
