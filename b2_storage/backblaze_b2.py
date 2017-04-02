@@ -24,6 +24,7 @@ class BackBlazeB2(object):
 
         self._authorization_token = None
         self.last_authorized = None
+        self.last_auth_failed = None
         self.download_url = None
         self.base_url = None
 
@@ -36,6 +37,10 @@ class BackBlazeB2(object):
         # Refresh token every 12h
         if self.last_authorized and datetime.datetime.now() < (self.last_authorized + datetime.timedelta(hours=12)):
             return True
+
+        # In case of failure, repeat every 10 secs
+        if self.last_auth_failed and datetime.datetime.now() < (self.last_auth_failed + datetime.timedelta(seconds=10)):
+            return False
 
         headers = {'Authorization': 'Basic: %s' % (
         base64.b64encode(('%s:%s' % (self.account_id, self.app_key)).encode('utf-8'))).decode('utf-8')}
@@ -53,6 +58,7 @@ class BackBlazeB2(object):
             else:
                 return False
         except requests.exceptions.Timeout:
+            self.last_auth_failed = datetime.datetime.now()
             log.error('Connection to backblaze timeouted during authorization')
             return False
 
