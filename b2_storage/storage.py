@@ -80,18 +80,13 @@ class B2Storage(Storage):
         output.seek(0)
         return File(output, name)
 
-    #
     # def get_available_name(self, name, max_length=None):
     #     pass
-    #
-    # def delete(self, name):
-    #     pass
-    #
-    # def exists(self, name):
-    #     pass
-    #
-    # def listdir(self, path):
-    #     pass
+    def delete(self, name):
+        pass
+
+    def listdir(self, path):
+        pass
 
     def size(self, name):
         return 1
