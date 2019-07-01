@@ -4,8 +4,9 @@ from __future__ import unicode_literals, absolute_import
 import base64
 import datetime
 import hashlib
-import requests
 import logging
+
+import requests
 
 log = logging.getLogger(__name__)
 
@@ -43,10 +44,11 @@ class BackBlazeB2(object):
             return False
 
         headers = {'Authorization': 'Basic: %s' % (
-        base64.b64encode(('%s:%s' % (self.account_id, self.app_key)).encode('utf-8'))).decode('utf-8')}
+            base64.b64encode(('%s:%s' % (self.account_id, self.app_key)).encode('utf-8'))).decode('utf-8')}
 
         try:
-            response = requests.get('https://api.backblaze.com/b2api/v1/b2_authorize_account', headers=headers, timeout=2)
+            response = requests.get('https://api.backblaze.com/b2api/v1/b2_authorize_account', headers=headers,
+                                    timeout=2)
             if response.status_code == 200:
                 resp = response.json()
                 self.base_url = resp['apiUrl']
@@ -61,7 +63,6 @@ class BackBlazeB2(object):
             self.last_auth_failed = datetime.datetime.now()
             log.error('Connection to backblaze timeouted during authorization')
             return False
-
 
     def get_upload_url(self):
         self.authorize()
@@ -102,7 +103,9 @@ class BackBlazeB2(object):
                 download_response = requests.post(url, headers=headers, data=content.read())
                 attempts += 1
         if download_response.status_code != 200:
-            raise BackBlazeB2.APIError('{} error while uploading file to B2 Cloud. Response: {}'.format(download_response.status_code, download_response.content))
+            raise BackBlazeB2.APIError(
+                '{} error while uploading file to B2 Cloud. Response: {}'.format(download_response.status_code,
+                                                                                 download_response.content))
 
         return download_response.json()
 
@@ -112,15 +115,32 @@ class BackBlazeB2(object):
         headers = {'Authorization': self.authorization_token}
         return requests.get("%s/file/%s/%s" % (self.download_url, self.bucket_name, name), headers=headers)
 
-    def file_download_url(self, name):
-        self.authorize()
-
-        return "%s/file/%s/%s" % (self.download_url, self.bucket_name, name)
-
     def download_file(self, name):
         headers = {}
 
         if self.bucket_private:
             headers = {'Authorization': self.authorization_token}
 
-        return requests.get(self.file_download_url(name), headers=headers).content
+        return requests.get(self.get_file_url(name), headers=headers).content
+
+    def get_file_url(self, name):
+        self.authorize()
+
+        return "%s/file/%s/%s" % (self.download_url, self.bucket_name, name)
+
+    def get_bucket_id_by_name(self):
+        """
+        BackBlaze B2 should  make an endpoint to retrieve buckets by its name.
+        """
+        headers = {'Authorization': self.authorization_token}
+        params = {'accountId': self.account_id}
+        resp = requests.get(self._build_url("/b2api/v1/b2_list_buckets"), headers=headers, params=params).json()
+        if 'buckets' in resp:
+            buckets = resp['buckets']
+            for bucket in buckets:
+                if bucket['bucketName'] == self.bucket_name:
+                    self.bucket_id = bucket['bucketId']
+                    return True
+
+        else:
+            return False

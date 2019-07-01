@@ -3,30 +3,29 @@ from __future__ import absolute_import, unicode_literals
 
 import os
 import re
-from django.conf import settings
-from django.core.files.base import File
-from django.core.files.storage import Storage
 from io import BytesIO
 from tempfile import TemporaryFile
 from uuid import uuid4
 
+from django.conf import settings
+from django.core.files.base import File
+from django.core.files.storage import Storage
+from django.utils.deconstruct import deconstructible
+
 from .backblaze_b2 import BackBlazeB2
 
 
+@deconstructible
 class B2Storage(Storage):
-    def __init__(self, account_id=None, app_key=None, bucket_name=None, bucket_id=None, bucket_private=True):
-        self.account_id = settings.BACKBLAZEB2_ACCOUNT_ID if account_id is None else account_id
-        self.app_key = settings.BACKBLAZEB2_APP_KEY if app_key is None else app_key
-        self.bucket_name = settings.BACKBLAZEB2_BUCKET_NAME if bucket_name is None else bucket_name
-        self.bucket_id = settings.BACKBLAZEB2_BUCKET_ID if bucket_id is None else bucket_id
-        self.bucket_private = settings.BACKBLAZEB2_BUCKET_PRIVATE if bucket_private is None else bucket_private
-        self.b2 = BackBlazeB2(
-            app_key=self.app_key,
-            account_id=self.account_id,
-            bucket_name=self.bucket_name,
-            bucket_id=self.bucket_id,
-            bucket_private=self.bucket_private
-        )
+    def __init__(self, account_id=None, app_key=None, bucket_name=None):
+        overrides = locals()
+        defaults = {
+            'account_id': settings.BACKBLAZEB2_ACCOUNT_ID,
+            'app_key': settings.BACKBLAZEB2_APP_KEY,
+            'bucket_name': settings.BACKBLAZEB2_BUCKET_NAME,
+        }
+        kwargs = {k: overrides[k] or v for k, v in defaults.items()}
+        self.b2 = BackBlazeB2(**kwargs)
 
     def save(self, name, content, max_length=None):
         """
@@ -92,4 +91,4 @@ class B2Storage(Storage):
         return 1
 
     def url(self, name):
-        return self.b2.file_download_url(name)
+        return self.b2.get_file_url(name)
