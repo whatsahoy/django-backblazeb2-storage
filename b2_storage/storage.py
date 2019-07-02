@@ -17,12 +17,14 @@ from .backblaze_b2 import BackBlazeB2
 
 @deconstructible
 class B2Storage(Storage):
-    def __init__(self, account_id=None, app_key=None, bucket_name=None):
+    def __init__(self, account_id=None, app_key=None, bucket_name=None, bucket_id=None, bucket_private=False):
         overrides = locals()
         defaults = {
             'account_id': settings.BACKBLAZEB2_ACCOUNT_ID,
             'app_key': settings.BACKBLAZEB2_APP_KEY,
             'bucket_name': settings.BACKBLAZEB2_BUCKET_NAME,
+            'bucket_id': settings.BACKBLAZEB2_BUCKET_ID,
+            'bucket_private': settings.BACKBLAZEB2_BUCKET_PRIVATE,
         }
         kwargs = {k: overrides[k] or v for k, v in defaults.items()}
         self.b2 = BackBlazeB2(**kwargs)
