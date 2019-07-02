@@ -108,12 +108,12 @@ class BackBlazeB2(object):
             'X-Bz-Info-src_last_modified_millis': '',
         }
 
-        download_response = requests.post(url, headers=headers, data=content.read())
+        download_response = requests.post(url, headers=headers, data=file_content)
         # Status is 503: Service unavailable. Try again
         if download_response.status_code == 503:
             attempts = 0
             while attempts <= 3 and download_response.status_code == 503:
-                download_response = requests.post(url, headers=headers, data=content.read())
+                download_response = requests.post(url, headers=headers, data=file_content)
                 attempts += 1
         if download_response.status_code != 200:
             raise BackBlazeB2.APIError(
