@@ -5,7 +5,13 @@ import base64
 import datetime
 import hashlib
 import logging
-import six
+import sys
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    string_types = str
+else:
+    string_types = basestring
 
 import requests
 
@@ -89,7 +95,7 @@ class BackBlazeB2(object):
         file_content = content.read()
         content.seek(0)
 
-        if isinstance(file_content, six.string_types):
+        if isinstance(file_content, string_types):
             file_content = file_content.encode("utf-8")
 
         sha1_of_file_data = hashlib.sha1(file_content).hexdigest()
