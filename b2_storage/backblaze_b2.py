@@ -85,7 +85,7 @@ class BackBlazeB2(object):
 
         url = response['uploadUrl']
         content.seek(0)
-        sha1_of_file_data = hashlib.sha1(content.read()).hexdigest()
+        sha1_of_file_data = hashlib.sha1(content.read().encode("utf-8")).hexdigest()
         content.seek(0)
 
         headers = {
