@@ -20,6 +20,7 @@ class BackBlazeB2(object):
         self.account_id = account_id
         self.app_key = app_key
         self.bucket_name = bucket_name
+        self.bucket_private = bucket_private
         self.authorize()
         if not self.bucket_id:
             self.get_bucket_id_by_name()
