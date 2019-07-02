@@ -5,6 +5,7 @@ import base64
 import datetime
 import hashlib
 import logging
+import six
 
 import requests
 
@@ -85,8 +86,13 @@ class BackBlazeB2(object):
 
         url = response['uploadUrl']
         content.seek(0)
-        sha1_of_file_data = hashlib.sha1(content.read().encode("utf-8")).hexdigest()
+        file_content = content.read()
         content.seek(0)
+
+        if isinstance(file_content, six.string_types):
+            file_content = file_content.encode("utf-8")
+
+        sha1_of_file_data = hashlib.sha1(file_content).hexdigest()
 
         headers = {
             'Authorization': response['authorizationToken'],
