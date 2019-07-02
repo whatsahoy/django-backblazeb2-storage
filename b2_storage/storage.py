@@ -46,7 +46,7 @@ class B2Storage(Storage):
         name = os.path.join(folder_path, newname)
 
         resp = self.b2.upload_file(name, content)
-        if 'fileName' in resp:
+        if resp and 'fileName' in resp:
             return resp['fileName']
         else:
             # Raise exception

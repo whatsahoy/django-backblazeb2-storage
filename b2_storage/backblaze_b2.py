@@ -15,19 +15,14 @@ class BackBlazeB2(object):
     class APIError(Exception):
         pass
 
-    def __init__(self, app_key=None, account_id=None, bucket_name=None, bucket_id=None, bucket_private=True):
-        self.bucket_id = None
+    def __init__(self, app_key=None, account_id=None, bucket_name=None, bucket_private=False, bucket_id=None):
+        self.bucket_id = bucket_id
         self.account_id = account_id
         self.app_key = app_key
         self.bucket_name = bucket_name
-        self.bucket_id = bucket_id
-        self.bucket_private = bucket_private
-
-        self._authorization_token = None
-        self.last_authorized = None
-        self.last_auth_failed = None
-        self.download_url = None
-        self.base_url = None
+        self.authorize()
+        if not self.bucket_id:
+            self.get_bucket_id_by_name()
 
     @property
     def authorization_token(self):
