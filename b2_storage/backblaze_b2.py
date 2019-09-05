@@ -32,8 +32,7 @@ class BackBlazeB2(object):
         self.last_authorized = None
         self.last_auth_failed = None
         self._authorization_token = None
-        
-        self.authorize()
+
         if not self.bucket_id:
             self.get_bucket_id_by_name()
 
