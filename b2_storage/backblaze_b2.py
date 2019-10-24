@@ -109,9 +109,16 @@ class BackBlazeB2(object):
 
         download_response = requests.post(url, headers=headers, data=file_content)
         # Status is 503: Service unavailable. Try again
-        if download_response.status_code == 503:
+        def can_try_again(dresponse):
+            #Sha1 did not match data received
+            return dresponse.status_code == 503 or (
+                dresponse.status_code == 400 and 
+                dresponse.json().get('message', None) == 'Sha1 did not match data received'
+            )
+
+        if can_try_again(download_response):
             attempts = 0
-            while attempts <= 3 and download_response.status_code == 503:
+            while attempts <= 3 and can_try_again(download_response):
                 download_response = requests.post(url, headers=headers, data=file_content)
                 attempts += 1
         if download_response.status_code != 200:
